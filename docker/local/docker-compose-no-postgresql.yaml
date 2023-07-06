@@ -15,4 +15,5 @@ services:
       - ../../config.py:/app/config.py
     image: python-flask:latest
     restart: 'no'
+    container_name: ${COMPOSE_PYTHON_PROJECT_NAME}-flask
 

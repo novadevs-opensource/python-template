@@ -1,10 +1,11 @@
 # Variables
-SRC_BUILD = true
-POSTGRESQL_BUILD = true
 PROJ_ENV = local
+include /.$(PWD)/docker/${PROJ_ENV}/.env
+SRC_BUILD = true
+POSTGRESQL_BUILD = true # Don't touch for now
 DOCKER_COMPOSE = docker-compose -f ./docker/${PROJ_ENV}/docker-compose.yaml
 DOCKER_COMPOSE_NO_POSTGRESQL = docker-compose -f ./docker/${PROJ_ENV}/docker-compose-no-postgresql.yaml
-HTTP_PORT := '5000'
+HTTP_PORT = $(HOST_PORT)
 
 
 # Help
@@ -33,9 +34,9 @@ endif
 
 	@if [ "$(SRC_BUILD)" = "true" ]; then \
 		echo "Building with src option"; \
-		# Creating folders src/ src/templates/ src/static/ ; \
+		echo "Creating folders src/ src/templates/ src/static/"; \
 		mkdir -p src/templates src/static; \
-		# __init__.py; \
+		echo "__init__.py"; \
 		echo "from flask import Flask" > src/__init__.py; \
 		echo "" >> src/__init__.py; \
 		echo "app = Flask(__name__)" >> src/__init__.py; \
@@ -46,14 +47,14 @@ endif
 		echo "" >> src/__init__.py; \
 		echo "if __name__ == '__main__':" >> src/__init__.py; \
 		echo "	app.run(host='0.0.0.0', debug=True)" >> src/__init__.py; \
-		# Creating more files; \
+		echo "Creating more files"; \
 		touch src/models.py; \
 		touch src/templates/index.html src/static/main.css; \
 	else \
 		echo "Building without src option"; \
-		# Creating folders templates/ static/; \
+		echo "Creating folders templates/ static/"; \
 		mkdir -p templates static; \
-		# __init__.py; \
+		echo "__init__.py"; \
 		echo "from flask import Flask" > __init__.py; \
 		echo "" >> __init__.py; \
 		echo "app = Flask(__name__)" >> __init__.py; \
@@ -64,7 +65,7 @@ endif
 		echo "" >> __init__.py; \
 		echo "if __name__ == '__main__':" >> __init__.py; \
 		echo "	app.run(host='0.0.0.0', debug=True)" >> __init__.py; \
-		# Creating more files; \
+		echo "Creating more files"; \
 		touch models.py; \
 		touch templates/index.html static/main.css; \
 	fi
@@ -160,6 +161,6 @@ urls:
 	@echo 'The flask server is running in the URL:'
 	@echo '   http://localhost:$(HTTP_PORT)'
 	@echo ''
-
-
-.PHONY: build up stop config help clean urls
+sh:
+	@docker exec -u root -it $(COMPOSE_PYTHON_PROJECT_NAME) bash
+.PHONY: build up stop config help clean urls sh

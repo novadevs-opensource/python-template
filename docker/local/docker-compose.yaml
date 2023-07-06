@@ -16,6 +16,7 @@ services:
       - ../../src:/app/app
       - ../../config.py:/app/config.py
     image: python-flask:latest
+    container_name: ${COMPOSE_PYTHON_PROJECT_NAME}-flask
     restart: 'no'
 
   postgresql:
@@ -35,10 +36,11 @@ services:
     ports:
       - ${POSTGRESQL_HOST_PORT}:3306
     restart: 'no'
+    container_name: ${COMPOSE_PSQL_CONTAINER_NAME}-postgresql
 
 volumes:
   db-volume:
-    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_VOLUME_DB}
+    name: ${COMPOSE_PYTHON_PROJECT_NAME}_${DOCKER_VOLUME_DB}
     labels:
-      custom.project: ${COMPOSE_PROJECT_NAME}
+      custom.project: ${COMPOSE_PYTHON_PROJECT_NAME}
       custom.data: database
