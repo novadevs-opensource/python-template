@@ -1,0 +1,9 @@
+config.py
+/docker/local/.env
+.env
+##
+app/
+static/
+templates/
+__init__.py
+models.py
