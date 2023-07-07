@@ -1,9 +1,2 @@
-config.py
-/docker/local/.env
+# Docker environment
 .env
-##
-app/
-static/
-templates/
-__init__.py
-models.py
