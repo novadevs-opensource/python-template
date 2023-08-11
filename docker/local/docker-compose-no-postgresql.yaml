@@ -7,12 +7,12 @@ services:
       context: ./../../
       dockerfile: ./docker/local/python-flask/Dockerfile
       args:
-        - FLASK_IMAGE=${FLASK_IMAGE}
+        - PYTHON_IMAGE=${PYTHON_IMAGE}
     ports:
-      - ${HOST_PORT}:${FLASK_PORT}
+      - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
       - ../../src:/app/app
       - ../../config.py:/app/config.py
-    image: python-flask:latest
+    image: ${PYTHON_IMAGE}
     restart: 'no'
 

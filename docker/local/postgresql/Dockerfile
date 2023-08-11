@@ -11,5 +11,5 @@ ENV POSTGRES_DB=mydatabase
 COPY init.sql /docker-entrypoint-initdb.d/
 
 # Expose the PostgreSQL port (default is 5432)
-EXPOSE ${POSTGRESQL_HOST_PORT}
+EXPOSE ${POSTGRESQL_EXTERNAL_PORT}
 

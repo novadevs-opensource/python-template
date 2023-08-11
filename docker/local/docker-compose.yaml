@@ -9,13 +9,13 @@ services:
       context: ./../../
       dockerfile: ./docker/local/python-flask/Dockerfile
       args:
-        - FLASK_IMAGE=${FLASK_IMAGE}
+        - PYTHON_IMAGE=${PYTHON_IMAGE}
     ports:
-      - ${HOST_PORT}:${FLASK_PORT}
+      - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
       - ../../src:/app/app
       - ../../config.py:/app/config.py
-    image: python-flask:latest
+    image: ${PYTHON_IMAGE}
     restart: 'no'
 
   postgresql:
@@ -25,7 +25,7 @@ services:
       context: ./postgresql
       args:
         - POSTGRESQL_IMAGE=${POSTGRESQL_IMAGE}
-    image: postgres:latest
+    image: ${POSTGRESQL_IMAGE}
     environment:
       - POSTGRES_USER=${POSTGRESQL_USER}
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
@@ -33,7 +33,7 @@ services:
     volumes:
       - db-volume:/var/lib/postgresql/data:rw
     ports:
-      - ${POSTGRESQL_HOST_PORT}:3306
+      - ${POSTGRESQL_EXTERNAL_PORT}:3306
     restart: 'no'
 
 volumes:
