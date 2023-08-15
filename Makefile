@@ -31,15 +31,15 @@ help:
 	@echo '   make build-requirements					'	# checks for the docker/local/.env
 	@echo '   make build-structure						'	# controls the src folder ( if it exists or not )
 	
-	@echo '   make build-with-flask-nd-sql				'	# python / flask with db
-	@echo '   make up-with-flask-nd-sql					'	# python / flask with db
-	@echo '   make stop-with-flask-nd-sql				'	# python / flask with db
-	@echo '   make clean-with-flask-nd-sql				'	# python / flask with db
+	@echo '   make build-with-sql						'	# python / flask with db
+	@echo '   make up-with-sql					'	# python / flask with db
+	@echo '   make stop-with-sql				'	# python / flask with db
+	@echo '   make clean-with-sql				'	# python / flask with db
 	
-	@echo '   make build-with-flask-without-sql			'	# python / flask without db
-	@echo '   make up-with-flask-without-sql			'	# python / flask without db
-	@echo '   make stop-with-flask-without-sql			'	# python / flask without db
-	@echo '   make clean-with-flask-without-sql			'	# python / flask without db
+	@echo '   make build-without-sql			'	# python / flask without db
+	@echo '   make up-without-sql			'	# python / flask without db
+	@echo '   make stop-without-sql			'	# python / flask without db
+	@echo '   make clean-without-sql			'	# python / flask without db
 
 	@echo '   make urls									'	# urls of the flask app
 	@echo '   make ssh									'
@@ -103,42 +103,42 @@ ssh-sql:
 ## Python/Flask with PostgreSQL functions
 ##
 
-build-with-flask-nd-sql:
-	@echo "build-with-flask-nd-sql... Running..."
+build-with-sql:
+	@echo "build-with-sql... Running..."
 
 ifeq ($(SRC_BUILD),true)
-	@echo "build-with-flask-nd-sql... Build with $(DEFAULT_DIR) directory..."
+	@echo "build-with-sql... Build with $(DEFAULT_DIR) directory..."
 	@${DOCKER_COMPOSE} build --build-arg SRC=$(DEFAULT_DIR) --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
 else
-	@echo "build-with-flask-nd-sql... Build without $(DEFAULT_DIR) directory..."
+	@echo "build-with-sql... Build without $(DEFAULT_DIR) directory..."
 	@${DOCKER_COMPOSE} build --build-arg SRC=. --no-cache
 endif
 
-	@echo "build-with-flask-nd-sql... OK..."
+	@echo "build-with-sql... OK..."
 
 
-up-with-flask-nd-sql:
-	@echo "up-with-flask-nd-sql... Running..."
+up-with-sql:
+	@echo "up-with-sql... Running..."
 
 	@${DOCKER_COMPOSE} up -d
 
-	@echo "up-with-flask-nd-sql... OK..."
+	@echo "up-with-sql... OK..."
 
 
-stop-with-flask-nd-sql:
-	@echo "stop-with-flask-nd-sql... Running..."
+stop-with-sql:
+	@echo "stop-with-sql... Running..."
 
 	@${DOCKER_COMPOSE} stop
 
-	@echo "stop-with-flask-nd-sql... OK..."
+	@echo "stop-with-sql... OK..."
 
 
-clean-with-flask-nd-sql:
-	@echo "clean-with-flask-nd-sql... Running..."
+clean-with-sql:
+	@echo "clean-with-sql... Running..."
 
 	@${DOCKER_COMPOSE} down -v -t 20
 
-	@echo "clean-with-flask-nd-sql... OK..."
+	@echo "clean-with-sql... OK..."
 
 
 
@@ -146,42 +146,46 @@ clean-with-flask-nd-sql:
 ## Python/Flask without PostgreSQL functions
 ##
 
-build-with-flask-without-sql:
-	@echo "build-with-flask-without-sql... Running..."
+build-without-sql:
+	@echo "build-without-sql... Running..."
 
 ifeq ($(SRC_BUILD),true)
-	@echo "build-with-flask-without-sql... Build with $(DEFAULT_DIR) directory..."
+	@echo "build-without-sql... Build with $(DEFAULT_DIR) directory..."
 	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=$(DEFAULT_DIR) --no-cache
 else
-	@echo "build-with-flask-without-sql... Build without $(DEFAULT_DIR) directory..."
+	@echo "build-without-sql... Build without $(DEFAULT_DIR) directory..."
 	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=. --no-cache
 endif
 
-	@echo "build-with-flask-without-sql... OK..."
+	@echo "build-without-sql... OK..."
 
 
-up-with-flask-without-sql:
-	@echo "up-with-flask-without-sql... Running..."
+up-without-sql:
+	@echo "up-without-sql... Running..."
 
 	@${DOCKER_COMPOSE_NO_POSTGRESQL} up -d
 
-	@echo "up-with-flask-without-sql... OK..."
+	@echo "up-without-sql... OK..."
 
 
-stop-with-flask-without-sql:
-	@echo "stop-with-flask-without-sql... Running..."
+stop-without-sql:
+	@echo "stop-without-sql... Running..."
 
 	@${DOCKER_COMPOSE_NO_POSTGRESQL} stop
 
-	@echo "stop-with-flask-without-sql... OK..."
+	@echo "stop-without-sql... OK..."
 
 
-clean-with-flask-without-sql:
-	@echo "clean-with-flask-without-sql... Running..."
+clean-without-sql:
+	@echo "clean-without-sql... Running..."
 
 	@${DOCKER_COMPOSE_NO_POSTGRESQL} down -v -t 20
 
-	@echo "clean-with-flask-without-sql... OK..."
+	@echo "clean-without-sql... OK..."
+
+##
+## Python/Flask without PostgreSQL functions
+##
 
 build: 
 	@echo "build... Running..."
@@ -196,10 +200,10 @@ build:
 
 ifeq ($(POSTGRESQL_BUILD),true)
 	@echo "build-with-postgresql..."
-	$(MAKE) build-with-flask-nd-sql
+	$(MAKE) build-with-sql
 else
 	@echo "build-without-postgresql..."
-	$(MAKE) build-with-flask-without-sql
+	$(MAKE) build-without-sql
 endif
 	@echo ""
 
