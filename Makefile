@@ -111,7 +111,7 @@ ifeq ($(SRC_BUILD),true)
 	@${DOCKER_COMPOSE} build --build-arg SRC=$(DEFAULT_DIR) --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
 else
 	@echo "build-with-sql... Build without $(DEFAULT_DIR) directory..."
-	@${DOCKER_COMPOSE} build --build-arg SRC=. --no-cache
+	@${DOCKER_COMPOSE} build --build-arg SRC=. --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
 endif
 
 	@echo "build-with-sql... OK..."
@@ -151,10 +151,10 @@ build-without-sql:
 
 ifeq ($(SRC_BUILD),true)
 	@echo "build-without-sql... Build with $(DEFAULT_DIR) directory..."
-	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=$(DEFAULT_DIR) --no-cache
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=$(DEFAULT_DIR) --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
 else
 	@echo "build-without-sql... Build without $(DEFAULT_DIR) directory..."
-	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=. --no-cache
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=. --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
 endif
 
 	@echo "build-without-sql... OK..."

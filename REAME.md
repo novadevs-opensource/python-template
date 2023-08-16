@@ -5,27 +5,53 @@
 3. Run `make` command to see the options you have available.
 
 
-- [ ] python							// hacer dockercompose con python solo y cambiar la estructura de archivos, o al menos la info
-- [ ] python + pgsql			// lo de arriba + meterle postgresql
-- [x] flask
-- [x] flask + pgsql
-
 
 - [x] archivo env global que controle si el proyecto es solo python, python+db, flask, flask + db
-- [ ] un make build que haga las cosas el solito
 - [x] el build-requirements en los build no hace falta porque ya lo hago yo en el global
+- [ ] un make build que haga las cosas el solito
+- [ ] un make up - stop - clean global
 - [ ] hacer que se autorefresque el contenido
+- [ ] bash scripts o makefiles propios para flask / postgresql
+- [ ] revisar el sistema de archivos cuando es con python
+- [ ] revisar los mensajes para informar si estamos usando flask/python/sql
+- [ ] actualizar los envssss
+
+- [ ] opciones:
+	- [x] flask sql src
+	- [x] flask sql !src
+	- [ ] flask !sql src
+	- [ ] flask !sql !src
+
+	- [x] python sql src
+	- [ ] python sql !src
+	- [x] python !sql src
+	- [ ] python !sql !src
+- [ ] TODO -> testear `python sql src` && `python sql !src`
+- [ ] hacer una qa 
 
 
 ## eliminar todo
+~~~sh
 docker stop $(docker ps -aq)
 docker rm $(docker ps -aq)
+~~~
 
 ## encontrar puerto ocupado
+~~~sh
 sudo lsof -i :5000
+~~~
 
 ## kill process if docker-registry
+~~~sh
 sudo systemctl stop docker-registry
+~~~
+
+## comprobar si está flask instalado
+~~~sh
+docker run -it 'container-name' /bin/bash
+pip list
+~~~
+
 
 
 
