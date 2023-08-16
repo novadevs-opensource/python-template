@@ -1,0 +1,60 @@
+# Load environment variables from .env file
+include .env
+# Variables
+DOCKER_DIR := docker/local
+include /.$(PWD)/$(DOCKER_DIR)/.env
+
+DEFAULT_DIR := $(DEFAULT_DIR_)
+SRC_BUILD := $(SRC_BUILD_)
+FLASK_BUILD = $(FLASK_BUILD_)
+
+DOCKER_COMPOSE_NO_POSTGRESQL = docker-compose -f $(DOCKER_DIR)/docker-compose-no-postgresql.yaml
+
+
+## Global configuration
+.DELETE_ON_ERROR:
+
+
+##
+## Python/Flask without PostgreSQL functions
+##
+
+build-without-sql:
+	@echo "build-without-sql... Running..."
+
+ifeq ($(SRC_BUILD),true)
+	@echo "build-without-sql... Build with $(DEFAULT_DIR) directory..."
+	@echo ""
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=$(DEFAULT_DIR) --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
+else
+	@echo "build-without-sql... Build without $(DEFAULT_DIR) directory..."
+	@echo ""
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} build --build-arg SRC=. --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
+endif
+
+	@echo "build-without-sql... OK..."
+	@echo ""
+
+
+up-without-sql:
+	@echo "up-without-sql... Running..."
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} up -d
+	@echo "up-without-sql... OK..."
+	@echo ""
+
+
+stop-without-sql:
+	@echo "stop-without-sql... Running..."
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} stop
+	@echo "stop-without-sql... OK..."
+	@echo ""
+
+
+clean-without-sql:
+	@echo "clean-without-sql... Running..."
+	@${DOCKER_COMPOSE_NO_POSTGRESQL} down -v -t 20
+	@echo "clean-without-sql... OK..."
+	@echo ""
+
+
+.PHONY: build-without-sql up-without-sql stop-without-sql clean-without-sql 

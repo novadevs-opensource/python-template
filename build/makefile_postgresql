@@ -1,0 +1,60 @@
+# Load environment variables from .env file
+include .env
+# Variables
+DOCKER_DIR := docker/local
+include /.$(PWD)/$(DOCKER_DIR)/.env
+
+DEFAULT_DIR := $(DEFAULT_DIR_)
+SRC_BUILD := $(SRC_BUILD_)
+FLASK_BUILD = $(FLASK_BUILD_)
+
+DOCKER_COMPOSE = docker-compose -f $(DOCKER_DIR)/docker-compose.yaml
+
+
+## Global configuration
+.DELETE_ON_ERROR:
+
+
+##
+## Python/Flask with PostgreSQL functions
+##
+
+build-with-sql:
+	@echo "build-with-sql... Running..."
+
+ifeq ($(SRC_BUILD),true)
+	@echo "build-with-sql... Build with $(DEFAULT_DIR) directory..."
+	@echo ""
+	@${DOCKER_COMPOSE} build --build-arg SRC=$(DEFAULT_DIR) --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
+else
+	@echo "build-with-sql... Build without $(DEFAULT_DIR) directory..."
+	@echo ""
+	@${DOCKER_COMPOSE} build --build-arg SRC=. --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
+endif
+
+	@echo "build-with-sql... OK..."
+	@echo ""
+
+
+up-with-sql:
+	@echo "up-with-sql... Running..."
+	@${DOCKER_COMPOSE} up -d
+	@echo "up-with-sql... OK..."
+	@echo ""
+
+
+stop-with-sql:
+	@echo "stop-with-sql... Running..."
+	@${DOCKER_COMPOSE} stop
+	@echo "stop-with-sql... OK..."
+	@echo ""
+
+
+clean-with-sql:
+	@echo "clean-with-sql... Running..."
+	@${DOCKER_COMPOSE} down -v -t 20
+	@echo "clean-with-sql... OK..."
+	@echo ""
+
+
+.PHONY: build-with-sql up-with-sql stop-with-sql clean-with-sql 
