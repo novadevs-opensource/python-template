@@ -10,6 +10,7 @@ services:
       dockerfile: ./docker/local/python-flask/Dockerfile
       args:
         - PYTHON_IMAGE=${PYTHON_IMAGE}
+    container_name: ${PYTHON_CONTAINER_NAME}
     ports:
       - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
@@ -25,6 +26,7 @@ services:
       context: ./postgresql
       args:
         - POSTGRESQL_IMAGE=${POSTGRESQL_IMAGE}
+    container_name: ${POSTGRESQL_CONTAINER_NAME}
     image: ${POSTGRESQL_IMAGE}
     environment:
       - POSTGRES_USER=${POSTGRESQL_USER}

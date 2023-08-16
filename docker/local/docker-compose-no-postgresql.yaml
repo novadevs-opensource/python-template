@@ -8,6 +8,7 @@ services:
       dockerfile: ./docker/local/python-flask/Dockerfile
       args:
         - PYTHON_IMAGE=${PYTHON_IMAGE}
+    container_name: ${PYTHON_CONTAINER_NAME}
     ports:
       - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
