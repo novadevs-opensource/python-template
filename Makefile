@@ -31,7 +31,7 @@ help:
 
 	@echo '   if using flask							'
 	@echo '   make urls									'	# urls of the flask app
-	@echo '   make ssh									'	# connect to the python/flask container
+	@echo '   make ssh									'	# connect to the flask container
 	@echo ''
 
 	@echo '   if using postgresql						'
@@ -51,10 +51,24 @@ ifeq ($(SRC_BUILD),false)
 		exit 1; \
 	fi
 
+ifeq ($(FLASK_BUILD),true)
+	@if [ -f $(DEFAULT_DIR)/file.py ]; then rm $(DEFAULT_DIR)/file.py; fi
+else
+	@if [ -f $(DEFAULT_DIR)/__init__.py ]; then rm $(DEFAULT_DIR)/__init__.py; fi
+	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
+endif
+
 	@mv $(DEFAULT_DIR)/* .
 	@rmdir $(DEFAULT_DIR)/
 else
-	@echo "build-structure..."
+
+ifeq ($(FLASK_BUILD),true)
+	@if [ -f $(DEFAULT_DIR)/file.py ]; then rm $(DEFAULT_DIR)/file.py; fi
+else
+	@if [ -f $(DEFAULT_DIR)/__init__.py ]; then rm $(DEFAULT_DIR)/__init__.py; fi
+	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
+endif
+
 	@if [ -f ./config.py ]; then rm ./config.py; fi
 	@cp $(DEFAULT_DIR)/config.py .
 # @rm $(DEFAULT_DIR)/config.py
