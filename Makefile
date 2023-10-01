@@ -15,26 +15,30 @@ DOCKER_COMPOSE_DB = docker-compose -f $(DOCKER_DIR)/docker-compose-db.yaml
 .DELETE_ON_ERROR:
 
 help:
-	@echo ''
-	@echo 'Makefile for generating basic skeleton for Python - Flask app'
-	@echo ''
-	@echo 'Usage:							'
-	@echo '   make							'
-	@echo '   make build-requirements		'
-	@echo '   make build-structure			'
-	@echo '   make build					'
-	@echo '   make urls						'
-	@echo '   make up						'
-	@echo '   make down						'
-	@echo '   make clean					'
-	@echo '   make build-with-sql			'
-	@echo '   make up-with-sql				'
-	@echo '   make down-with-sql			'
-	@echo '   make clean-with-sql			'
-	@echo '   make ssh						'
-	@echo '   make ssh-sql					'
-	@echo '   make help						'
-	@echo ''
+	@echo '																									'
+	@echo 'Makefile for generating basic skeleton for Python - Flask app									'
+	@echo '																									'
+	@echo 'Usage:																							'
+	@echo '   make					Print the help															'
+	@echo '   make help				Print the help															'
+	@echo '   make build-requirements		Check if the requirements are fulfilled							'
+	@echo '   make build-structure			Creates the Flask structure										'
+	@echo '   make build				Build the environment from scratch									'
+	@echo '   make urls				Print the application URL												'
+	@echo '   make start				Start the application												'
+	@echo '   make stop                    	Stop the application											'
+	@echo '   make status                  	Display the status of the container								'
+	@echo '   make destroy				Remove the whole environment										'
+	@echo '   make build-with-db			Build the environment from scratch including Postgres			'
+	@echo '   make urls-with-db			Print the application URLs including Postgres						'
+	@echo '   make start-with-db			Start the application including Postgres						'
+	@echo '   make stop-with-db     	        Stop the application including Postgres						'
+	@echo '   make status-with-db       	    	Display the status of the containers					'
+	@echo '   make destroy-with-db			Remove the whole environment including Postgres					'
+	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make ssh-db				Connect to the Postgres container									'
+	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
+	@echo '																									'
 
 build-requirements:
 
@@ -65,23 +69,6 @@ else
 	@echo "build-structure... Nothing to do..."
 endif
 
-urls:
-	@echo ''
-	@echo 'The flask server is running in the URL:'
-	@echo '   http://localhost:$(FLASK_EXTERNAL_PORT)'
-	@echo ''
-
-ssh:
-
-	@echo "ssh... Running..."
-
-	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(FLASK_CONTAINER_NAME) bash
-
-ssh-sql:
-
-	@echo "ssh-sql... Running..."
-
-	@docker exec -u root -it $(POSTGRESQL_CONTAINER_NAME) bash
 
 ##
 ## Flask without PostgreSQL functions
@@ -102,7 +89,13 @@ build:
 	@echo ''
 	@echo "Building... OK..."
 
-up:
+urls:
+	@echo ''
+	@echo 'The flask server is running in the URL:'
+	@echo '   http://localhost:$(FLASK_EXTERNAL_PORT)'
+	@echo ''
+
+start:
 
 	@echo "Starting the project...."
 
@@ -116,7 +109,16 @@ stop:
 
 	@${DOCKER_COMPOSE} stop
 
-clean:
+	@echo ''
+	@echo "Stopping... OK..."
+
+status:
+
+	@echo "Displaying the status of the containers..."
+
+	@${DOCKER_COMPOSE} ps
+
+destroy:
 
 	@echo "Cleaning the project..."
 
@@ -125,48 +127,80 @@ clean:
 	@echo ''
 	@echo "Cleaning... OK..."
 
+ssh:
+
+	@echo "ssh... Running..."
+
+	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(FLASK_CONTAINER_NAME) bash
+
 
 ##
 ## Flask with PostgreSQL functions
 ##
 
-build-with-sql:
+build-with-db:
 
-	@echo "build-with-sql... Running..."
+	@echo "Building the project with PostgreSQL..."
 
 	@$(MAKE) build-requirements
-	@echo ""
+	@echo ''
 
-ifeq ($(SRC_BUILD),true)
-	@echo "build-with-sql... Build with $(DEFAULT_DIR) directory..."
-	@${DOCKER_COMPOSE} build --build-arg SRC=src --no-cache
-else
-	@echo "build-with-sql... Build without $(DEFAULT_DIR) directory..."
-	@${DOCKER_COMPOSE} build --build-arg SRC=. --no-cache
-endif
+	@$(MAKE) build-structure
+	@echo ''
 
-	@echo "build-with-sql... OK..."
+	@${DOCKER_COMPOSE_DB} build --no-cache
 
-up-with-sql:
+	@echo ''
+	@echo "Building... OK..."
 
-	@echo "up-with-sql... Running..."
+urls-with-db:
+	@echo ''
+	@echo 'The flask server is running in the URL:'
+	@echo '   http://localhost:$(FLASK_EXTERNAL_PORT)'
+	@echo ''
+	@echo 'The PostgreSQL server is running in the URL:'
+	@echo '   http://localhost:$(POSTGRES_EXTERNAL_PORT)'
 
-	@${DOCKER_COMPOSE} up -d
+start-with-db:
 
-	@echo "up-with-sql... OK..."
+	@echo "Starting the project...."
 
-stop-with-sql:
+	@${DOCKER_COMPOSE_DB} up -d
 
-	@echo "stop-with-sql... Running..."
+	@$(MAKE) urls-with-db
 
-	@${DOCKER_COMPOSE} stop
+stop-with-db:
 
-	@echo "stop-with-sql... OK..."
+	@echo "Stopping the project..."
 
-clean-with-sql:
+	@${DOCKER_COMPOSE_DB} stop
 
-	@echo "clean-with-sql... Running..."
+	@echo ''
+	@echo "Stopping... OK..."
 
-	@${DOCKER_COMPOSE} down -v -t 20
+status-with-db:
 
-	@echo "clean-with-sql... OK..."
+	@echo "Displaying the status of the containers..."
+
+	@${DOCKER_COMPOSE_DB} ps
+
+destroy-with-db:
+
+	@echo "Cleaning the project..."
+
+	@${DOCKER_COMPOSE_DB} down -v -t 20
+
+	@echo ''
+	@echo "Cleaning... OK..."
+
+ssh-db:
+
+	@echo "ssh-sql... Running..."
+
+	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(POSTGRES_CONTAINER_NAME) bash
+
+connect-db:
+
+	@echo "Connecting to the PostgreSQL..."
+
+	@psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
