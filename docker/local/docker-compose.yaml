@@ -1,44 +1,23 @@
-version: '3'
+---
+
+version: '3.8'
 services:
-  python-flask:
-    depends_on:
-      - postgresql
+  flask:
     env_file:
       - .env
+    container_name: ${COMPOSE_PROJECT_NAME}_${FLASK_CONTAINER_NAME}
     build:
       context: ./../../
       dockerfile: ./docker/local/python-flask/Dockerfile
       args:
         - FLASK_IMAGE=${FLASK_IMAGE}
+        - FLASK_PORT=${FLASK_INTERNAL_PORT}
+        - FLASK_SRC_DIR=${PROJ_DIR}
     ports:
-      - ${HOST_PORT}:${FLASK_PORT}
+      - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
-      - ../../src:/app/app
-      - ../../config.py:/app/config.py
+      - ../../${PROJ_DIR}:/app/
     image: python-flask:latest
     restart: 'no'
 
-  postgresql:
-    env_file:
-      - .env
-    build:
-      context: ./postgresql
-      args:
-        - POSTGRESQL_IMAGE=${POSTGRESQL_IMAGE}
-    image: postgres:latest
-    environment:
-      - POSTGRES_USER=${POSTGRESQL_USER}
-      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRES_DB=${POSTGRESQL_DATABASE}
-    volumes:
-      - db-volume:/var/lib/postgresql/data:rw
-    ports:
-      - ${POSTGRESQL_HOST_PORT}:3306
-    restart: 'no'
-
-volumes:
-  db-volume:
-    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_VOLUME_DB}
-    labels:
-      custom.project: ${COMPOSE_PROJECT_NAME}
-      custom.data: database
+...

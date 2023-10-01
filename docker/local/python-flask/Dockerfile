@@ -5,19 +5,18 @@ FROM ${FLASK_IMAGE}
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the application files to the container's working directory
-ARG SRC
-COPY ${SRC} /app
-COPY config.py /app
-COPY requirements.txt /app
+# Argument to specify source directory
+ARG FLASK_SRC_DIR
 
-# Set the file permissions for the copied files
-RUN chmod -R 755 /app
+# Copy the application files to the container's working directory so the dependencies can be installed
+COPY $FLASK_SRC_DIR/requirements.txt /app/
 
 # Install the required dependencies
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
 # Expose the port on which the Flask app will run (default is 5000)
+ARG FLASK_PORT
 EXPOSE ${FLASK_PORT}
 
 # Set the entry point command to run the Flask app
