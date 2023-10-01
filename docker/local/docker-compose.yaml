@@ -8,16 +8,32 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}_${FLASK_CONTAINER_NAME}
     build:
       context: ./../../
-      dockerfile: ./docker/local/python-flask/Dockerfile
+      dockerfile: ${FLASK_DOCKERFILE}
       args:
-        - FLASK_IMAGE=${FLASK_IMAGE}
+        - FLASK_IMAGE=${FLASK_BASE_IMAGE}
         - FLASK_PORT=${FLASK_INTERNAL_PORT}
         - FLASK_SRC_DIR=${PROJ_DIR}
+    image: ${FLASK_BASE_IMAGE}
+    networks:
+      - localnetwork
     ports:
       - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
       - ../../${PROJ_DIR}:/app/
-    image: python-flask:latest
+    labels:
+      custom.project_name: ${COMPOSE_PROJECT_NAME}
+      custom.components: flask
     restart: 'no'
+
+networks:
+  localnetwork:
+    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_NETWORK_NAME}
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+        - subnet: "${DOCKER_NETWORK_CIDR}"
 
 ...
