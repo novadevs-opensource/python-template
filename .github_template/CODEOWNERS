@@ -1,0 +1,10 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence, those users
+#  will be requested for review when someone opens a pull request.
+*  @brunolorente
+
+## Github Actions files
+.github/* @djoven89
+
+## Docker settings
+docker/*    @djoven89
