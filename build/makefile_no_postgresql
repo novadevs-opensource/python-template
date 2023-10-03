@@ -65,7 +65,7 @@ urls:
 
 	@echo ""
 	@echo "The flask server is running in the URL:"
-	@echo "   http://localhost:$(FLASK_EXTERNAL_PORT)"
+	@echo "   http://localhost:$(PYTHON_EXTERNAL_PORT)"
 	@echo ""
 
 start:
@@ -108,6 +108,6 @@ ssh:
 	@$(MAKE) load-vars
 
 	@echo ""
-	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(FLASK_CONTAINER_NAME) bash
+	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME) bash
 
 .PHONY: load-vars build urls start stop status destroy ssh
