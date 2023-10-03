@@ -1,6 +1,6 @@
 # Use the official Python base image
-ARG FLASK_IMAGE
-FROM ${FLASK_IMAGE}
+ARG PYTHON_IMAGE
+FROM ${PYTHON_IMAGE}
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -14,6 +14,9 @@ COPY ${SRC_DIR}/requirements.txt /app/
 # Argument to know if Flask is installed or not
 ARG FLASK_BUILD
 
+
+
+ARG FLASK_BUILD
 # Install the required dependencies
 RUN pip install --upgrade pip && \
     if [ "${FLASK_BUILD}" = "true" ]; then pip install --no-cache-dir -r requirements.txt; fi
@@ -22,5 +25,5 @@ RUN pip install --upgrade pip && \
 ARG FLASK_PORT
 EXPOSE ${FLASK_PORT}
 
-# Set the entry point command to run the Flask app
+# Set the entry point command to run the Python app
 CMD ["python", "__init__.py"]

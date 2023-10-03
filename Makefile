@@ -7,9 +7,6 @@ DOCKER_DIR := docker/local
 DOCKER_COMPOSE = docker-compose -f $(DOCKER_DIR)/docker-compose.yaml
 DOCKER_COMPOSE_DB = docker-compose -f $(DOCKER_DIR)/docker-compose-db.yaml
 
-##
-## General functions
-##
 
 ## Global configuration
 .DELETE_ON_ERROR:
@@ -71,6 +68,13 @@ ifeq ($(SRC_BUILD),false)
 		echo "The directory '$(DEFAULT_DIR)' is empty, so there is nothing to copy."; \
 		exit 1; \
 	fi
+
+ifeq ($(FLASK_BUILD),true)
+	@if [ -f $(DEFAULT_DIR)/file.py ]; then rm $(DEFAULT_DIR)/file.py; fi
+else
+	@if [ -f $(DEFAULT_DIR)/__init__.py ]; then rm $(DEFAULT_DIR)/__init__.py; fi
+	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
+endif
 
 	@mv $(DEFAULT_DIR)/* .
 	@rmdir $(DEFAULT_DIR)/
@@ -142,6 +146,7 @@ ifeq ($(POSTGRESQL_BUILD),true)
 else
 	@$(MAKE) -f build/makefile_no_postgresql destroy
 endif
+
 
 ssh:
 	@echo "Calling ssh..."
