@@ -13,11 +13,10 @@
     FLASK_BUILD=true
     POSTGRESQL_BUILD=true
 
-    # Docker network
+    # Docker
+    DOCKER_SRC_DIR='src'  ## Options are: 'src' or '.'. The options depends on 'SRC_BUILD' parameter.
     DOCKER_NETWORK_NAME=local
     DOCKER_NETWORK_CIDR=192.17.210.0/24
-
-    # Docker volumes
     DOCKER_VOLUME_DB=db-data
 
     # Flask application
@@ -30,7 +29,7 @@
 
     # PostgreSQL database
     POSTGRES_CONTAINER_NAME=postgres
-    POSTGRES_BASE_IMAGE=postgres:15-bullseye
+    POSTGRES_BASE_IMAGE=postgres:15.4-bullseye
     POSTGRES_IMAGE_NAME="novadevs/${COMPOSE_PROJECT_NAME}-${POSTGRES_CONTAINER_NAME}:latest"
     POSTGRES_DATABASE=db_novadevs
     POSTGRES_USER=dba_novadevs
@@ -41,9 +40,9 @@
 
     About the '**Make settings**' variables:
     - **DEFAULT_DIR**: *Do no touch this value*. The name of the default folder where the code is located, by default is `src`. This variable is used in the `build-structure` argument of `make` command to create the initial directory structure of the project.
-    - **SRC_BUILD_**: Checks if the project will have a src folder
-    - **POSTGRESQL_BUILD_**: Checks if the project will use PostgreSQL or not
-    - **FLASK_BUILD_**: Checks if the project will use Flask or Python
+    - **SRC_BUILD_**: Checks if the project will have a src folder. If it is set to `false`, the variable `DOCKER_SRC_DIR` must change to `.`.
+    - **POSTGRESQL_BUILD_**: Checks if the project will use PostgreSQL or not.
+    - **FLASK_BUILD_**: Checks if the project will use Flask or Python.
 
 3. Run `make` command to see the options you have available.
 4. Run `make -s build-structure` to configure the directory structure of the project. **NOTE:** This command must be run initially and just once.
