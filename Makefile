@@ -26,8 +26,10 @@ help:
 	@echo '   make stop                    	Stop the application											'
 	@echo '   make status                  	Display the status of the container								'
 	@echo '   make destroy				Remove the whole environment										'
-	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make ssh				Connect to the Python container											'
 	@echo '   make ssh-db				Connect to the Postgres container									'
+	@echo '   make logs				Display logs for the Python container										'
+	@echo '   make logs-db				Display logs for the Postgres container									'
 	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
 	@echo '																									'
 
@@ -141,7 +143,6 @@ else
 	@$(MAKE) -f build/makefile_no_postgresql destroy
 endif
 
-
 ssh:
 	@echo "Calling ssh..."
 
@@ -158,6 +159,24 @@ else
 	@echo "You are not using Postgres..."
 endif
 
+logs:
+	@echo "Calling logs..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql logs
+else
+	@$(MAKE) -f build/makefile_no_postgresql logs
+endif
+
+logs-db:
+	@echo "Calling logs-db..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_no_postgresql logs-db
+else
+	@echo "You are not using Postgres..."
+endif
+
 connect-db:
 
 ifeq ($(POSTGRESQL_BUILD),true)
@@ -166,4 +185,4 @@ else
 	@echo "You are not using Postgres..."
 endif
 
-.PHONY: load-vars build-structure build urls start stop status destroy ssh ssh-db connect-db
+.PHONY: load-vars build-structure build urls start stop status destroy ssh ssh-db logs logs-db connect-db
