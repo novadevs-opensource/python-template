@@ -12,14 +12,14 @@ services:
       args:
         - FLASK_IMAGE=${FLASK_BASE_IMAGE}
         - FLASK_PORT=${FLASK_INTERNAL_PORT}
-        - FLASK_SRC_DIR=${PROJ_DIR}
+        - FLASK_SRC_DIR=${DEFAULT_DIR}
     image: ${FLASK_IMAGE_NAME}
     networks:
       - localnetwork
     ports:
       - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
     volumes:
-      - ../../${PROJ_DIR}:/app/
+      - ../../${DEFAULT_DIR}:/app/
     labels:
       custom.project_name: ${COMPOSE_PROJECT_NAME}
       custom.components: flask
