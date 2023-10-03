@@ -56,10 +56,10 @@ build-structure:
 	@echo "build-structure... Running..."
 
 # Prepare the project for Flask or just Python
-ifeq ($(FLASK_BUILD),true)
-	@rm -v $(DEFAULT_DIR)/file.py
-else
+ifeq ($(PYTHON_BUILD),true)
 	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
+else
+	@rm $(DEFAULT_DIR)/file.py
 endif
 
 # Prepare the project directory structure
@@ -69,16 +69,10 @@ ifeq ($(SRC_BUILD),false)
 		exit 1; \
 	fi
 
-ifeq ($(FLASK_BUILD),true)
-	@if [ -f $(DEFAULT_DIR)/file.py ]; then rm $(DEFAULT_DIR)/file.py; fi
-else
-	@if [ -f $(DEFAULT_DIR)/__init__.py ]; then rm $(DEFAULT_DIR)/__init__.py; fi
-	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
-endif
-
 	@mv $(DEFAULT_DIR)/* .
 	@rmdir $(DEFAULT_DIR)/
 endif
+
 
 ##
 ## Environment functions

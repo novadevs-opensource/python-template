@@ -5,19 +5,19 @@ services:
   flask:
     env_file:
       - .env
-    container_name: ${COMPOSE_PROJECT_NAME}_${FLASK_CONTAINER_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}_${PYTHON_CONTAINER_NAME}
     build:
       context: ./../../
-      dockerfile: ${FLASK_DOCKERFILE}
+      dockerfile: ${PYTHON_DOCKERFILE}
       args:
-        - FLASK_IMAGE=${FLASK_BASE_IMAGE}
-        - FLASK_PORT=${FLASK_INTERNAL_PORT}
+        - PYTHON_IMAGE=${PYTHON_BASE_IMAGE}
+        - PYTHON_PORT=${PYTHON_INTERNAL_PORT}
         - SRC_DIR=${DOCKER_SRC_DIR}
-    image: ${FLASK_BASE_IMAGE}
+    image: ${PYTHON_BASE_IMAGE}
     networks:
       - localnetwork
     ports:
-      - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
+      - ${PYTHON_EXTERNAL_PORT}:${PYTHON_INTERNAL_PORT}
     volumes:
       - ../../${DOCKER_SRC_DIR}:/app/
     labels:

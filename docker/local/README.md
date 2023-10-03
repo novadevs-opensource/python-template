@@ -10,7 +10,7 @@
     # Make settings
     DEFAULT_DIR=src
     SRC_BUILD=true
-    FLASK_BUILD=true
+    PYTHON_BUILD=true
     POSTGRESQL_BUILD=true
 
     # Docker
@@ -20,12 +20,12 @@
     DOCKER_VOLUME_DB=db-data
 
     # Flask application
-    FLASK_DOCKERFILE='./docker/local/python-flask/Dockerfile'
-    FLASK_CONTAINER_NAME=flask
-    FLASK_BASE_IMAGE=python:3.11
-    FLASK_IMAGE_NAME="novadevs/${COMPOSE_PROJECT_NAME}-${FLASK_CONTAINER_NAME}:latest"
-    FLASK_EXTERNAL_PORT=5000
-    FLASK_INTERNAL_PORT=5000
+    PYTHON_DOCKERFILE='./docker/local/python-flask/Dockerfile'
+    PYTHON_CONTAINER_NAME=flask
+    PYTHON_BASE_IMAGE=python:3.11
+    PYTHON_IMAGE_NAME="novadevs/${COMPOSE_PROJECT_NAME}-${PYTHON_CONTAINER_NAME}:latest"
+    PYTHON_EXTERNAL_PORT=5000
+    PYTHON_INTERNAL_PORT=5000
 
     # PostgreSQL database
     POSTGRES_CONTAINER_NAME=postgres
@@ -42,7 +42,7 @@
     - **DEFAULT_DIR**: *Do no touch this value*. The name of the default folder where the code is located, by default is `src`. This variable is used in the `build-structure` argument of `make` command to create the initial directory structure of the project.
     - **SRC_BUILD_**: Checks if the project will have a src folder. If it is set to `false`, the variable `DOCKER_SRC_DIR` must change to `.`.
     - **POSTGRESQL_BUILD_**: Checks if the project will use PostgreSQL or not.
-    - **FLASK_BUILD_**: Checks if the project will use Flask or Python.
+    - **PYTHON_BUILD_**: Checks if the project will use Flask or Python.
 
 3. Run `make` command to see the options you have available.
 4. Run `make -s build-structure` to configure the directory structure of the project. **NOTE:** This command must be run initially and just once.
