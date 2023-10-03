@@ -27,8 +27,10 @@ help:
 	@echo '   make stop                    	Stop the application											'
 	@echo '   make status                  	Display the status of the container								'
 	@echo '   make destroy				Remove the whole environment										'
-	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make ssh				Connect to the Python container											'
 	@echo '   make ssh-db				Connect to the Postgres container									'
+	@echo '   make logs				Display logs for Python container										'
+	@echo '   make logs-db				Display logs for Postgres container									'
 	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
 	@echo '																									'
 
@@ -119,6 +121,18 @@ ssh-db:
 	@echo ""
 	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(POSTGRES_CONTAINER_NAME) bash
 
+logs:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@docker logs $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME)
+
+logs-db:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@docker logs $(COMPOSE_PROJECT_NAME)_$(POSTGRES_CONTAINER_NAME)
+
 connect-db:
 	@$(MAKE) load-vars
 
@@ -126,4 +140,4 @@ connect-db:
 	@psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
 
 
-.PHONY: load-vars build urls start stop status destroy ssh ssh-db connect-db
+.PHONY: load-vars build urls start stop status destroy ssh ssh-db logs logs-db connect-db

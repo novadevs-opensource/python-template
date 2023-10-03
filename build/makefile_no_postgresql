@@ -28,6 +28,7 @@ help:
 	@echo '   make status                  	Display the status of the container								'
 	@echo '   make destroy				Remove the whole environment										'
 	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make logs				Display logs for Python container										'
 	@echo '																									'
 
 
@@ -110,4 +111,10 @@ ssh:
 	@echo ""
 	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME) bash
 
-.PHONY: load-vars build urls start stop status destroy ssh
+logs:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@docker logs $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME)
+
+.PHONY: load-vars build urls start stop status destroy ssh logs
