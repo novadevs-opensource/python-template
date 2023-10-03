@@ -123,7 +123,7 @@ connect-db:
 	@$(MAKE) load-vars
 
 	@echo ""
-	psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
+	@psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
 
 
 .PHONY: load-vars build urls start stop status destroy ssh ssh-db connect-db

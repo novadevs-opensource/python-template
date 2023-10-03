@@ -1,6 +1,6 @@
 # Use the official Python base image
-ARG PYTHON_IMAGE
-FROM ${PYTHON_IMAGE}
+ARG FLASK_IMAGE
+FROM ${FLASK_IMAGE}
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -14,9 +14,6 @@ COPY ${SRC_DIR}/requirements.txt /app/
 # Argument to know if Flask is installed or not
 ARG FLASK_BUILD
 
-
-
-ARG FLASK_BUILD
 # Install the required dependencies
 RUN pip install --upgrade pip && \
     if [ "${FLASK_BUILD}" = "true" ]; then pip install --no-cache-dir -r requirements.txt; fi
