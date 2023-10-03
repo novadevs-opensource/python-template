@@ -1,0 +1,71 @@
+---
+
+version: '3.8'
+services:
+  flask:
+    env_file:
+      - .env
+    container_name: ${COMPOSE_PROJECT_NAME}_${FLASK_CONTAINER_NAME}
+    build:
+      context: ./../../
+      dockerfile: ${FLASK_DOCKERFILE}
+      args:
+        - FLASK_IMAGE=${FLASK_BASE_IMAGE}
+        - FLASK_PORT=${FLASK_INTERNAL_PORT}
+        - SRC_DIR=${DOCKER_SRC_DIR}
+    image: ${FLASK_IMAGE_NAME}
+    networks:
+      - localnetwork
+    ports:
+      - ${FLASK_EXTERNAL_PORT}:${FLASK_INTERNAL_PORT}
+    volumes:
+      - ../../${DOCKER_SRC_DIR}:/app/
+    labels:
+      custom.project_name: ${COMPOSE_PROJECT_NAME}
+      custom.components: flask
+    restart: 'no'
+
+  postgresql:
+    env_file:
+      - .env
+    container_name: ${COMPOSE_PROJECT_NAME}_${POSTGRES_CONTAINER_NAME}
+    build:
+      context: ./postgresql
+      args:
+        - POSTGRES_IMAGE=${POSTGRES_BASE_IMAGE}
+        - POSTGRES_PORT=${POSTGRES_INTERNAL_PORT}
+    image: ${POSTGRES_IMAGE_NAME}
+    environment:
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - localnetwork
+    ports:
+      - ${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}
+    volumes:
+      - db-volume:/var/lib/postgresql/data:rw
+    labels:
+      custom.project_name: ${COMPOSE_PROJECT_NAME}
+      custom.components: postgres
+    restart: 'no'
+
+networks:
+  localnetwork:
+    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_NETWORK_NAME}
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+        - subnet: "${DOCKER_NETWORK_CIDR}"
+
+volumes:
+  db-volume:
+    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_VOLUME_DB}
+    labels:
+      custom.project: ${COMPOSE_PROJECT_NAME}
+      custom.data: database
+
+...

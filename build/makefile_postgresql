@@ -1,60 +1,129 @@
-# Load environment variables from .env file
-include .env
-# Variables
+##
+## Variables
+##
+
+# For Docker
 DOCKER_DIR := docker/local
-include /.$(PWD)/$(DOCKER_DIR)/.env
+DOCKER_COMPOSE = docker-compose -f $(DOCKER_DIR)/docker-compose-postgres.yaml
 
-DEFAULT_DIR := $(DEFAULT_DIR_)
-SRC_BUILD := $(SRC_BUILD_)
-FLASK_BUILD = $(FLASK_BUILD_)
-
-DOCKER_COMPOSE = docker-compose -f $(DOCKER_DIR)/docker-compose.yaml
-
+##
+## General functions
+##
 
 ## Global configuration
 .DELETE_ON_ERROR:
 
+help:
+	@echo '																									'
+	@echo 'Makefile for generating basic skeleton for Python - Flask app									'
+	@echo '																									'
+	@echo 'Usage:																							'
+	@echo '   make					Print the help															'
+	@echo '   make help				Print the help															'
+	@echo '   make load-vars			Check if the requirements are fulfilled								'
+	@echo '   make build				Build the environment from scratch									'
+	@echo '   make urls				Print the application URL												'
+	@echo '   make start				Start the application												'
+	@echo '   make stop                    	Stop the application											'
+	@echo '   make status                  	Display the status of the container								'
+	@echo '   make destroy				Remove the whole environment										'
+	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make ssh-db				Connect to the Postgres container									'
+	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
+	@echo '																									'
 
 ##
 ## Python/Flask with PostgreSQL functions
 ##
 
-build-with-sql:
-	@echo "build-with-sql... Running..."
-
-ifeq ($(SRC_BUILD),true)
-	@echo "build-with-sql... Build with $(DEFAULT_DIR) directory..."
-	@echo ""
-	@${DOCKER_COMPOSE} build --build-arg SRC=$(DEFAULT_DIR) --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
+# This functions ensures that the env files exists before doing anything
+load-vars:
+ifeq (,$(wildcard $(DOCKER_DIR)/.env))
+	@echo ''
+	@echo 'The configuration file "$(DOCKER_DIR)/.env" does not exist. Please, create it.'
+	@exit 1
 else
-	@echo "build-with-sql... Build without $(DEFAULT_DIR) directory..."
-	@echo ""
-	@${DOCKER_COMPOSE} build --build-arg SRC=. --build-arg FLASK_BUILD=$(FLASK_BUILD) --no-cache
+# Load Docker variables
+include $(DOCKER_DIR)/.env
 endif
 
-	@echo "build-with-sql... OK..."
+build:
+	@echo "build... Running..."
+
+	@$(MAKE) load-vars
 	@echo ""
 
+ifeq ($(SRC_BUILD),true)
+	@${DOCKER_COMPOSE} build --no-cache
+else
+	@${DOCKER_COMPOSE} build --no-cache
+endif
 
-up-with-sql:
-	@echo "up-with-sql... Running..."
+	@echo ""
+
+urls:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@echo "The flask server is running in the URL:"
+	@echo "   http://localhost:$(FLASK_EXTERNAL_PORT)"
+	@echo ""
+	@echo "The PostgreSQL server is running in the URL:"
+	@echo "   http://localhost:$(POSTGRES_EXTERNAL_PORT)"
+
+start:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@echo "start... Running..."
+
 	@${DOCKER_COMPOSE} up -d
-	@echo "up-with-sql... OK..."
+
+	@$(MAKE) urls
 	@echo ""
 
+stop:
+	@$(MAKE) load-vars
 
-stop-with-sql:
-	@echo "stop-with-sql... Running..."
+	@echo ""
+	@echo "stop... Running..."
+
 	@${DOCKER_COMPOSE} stop
-	@echo "stop-with-sql... OK..."
+
+status:
+	@$(MAKE) load-vars
+
+	@echo "status... Running..."
 	@echo ""
 
+	@${DOCKER_COMPOSE} ps
 
-clean-with-sql:
-	@echo "clean-with-sql... Running..."
+destroy:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@echo "destroy... Running..."
+	@echo ""
+
 	@${DOCKER_COMPOSE} down -v -t 20
-	@echo "clean-with-sql... OK..."
+
+ssh:
+	@$(MAKE) load-vars
+
 	@echo ""
+	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(FLASK_CONTAINER_NAME) bash
+
+ssh-db:
+	@$(MAKE) load-vars
+
+	@echo ""
+	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(POSTGRES_CONTAINER_NAME) bash
+
+connect-db:
+	@$(MAKE) load-vars
+
+	@echo ""
+	psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
 
 
-.PHONY: build-with-sql up-with-sql stop-with-sql clean-with-sql 
+.PHONY: load-vars build urls start stop status destroy ssh ssh-db connect-db

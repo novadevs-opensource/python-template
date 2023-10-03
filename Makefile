@@ -1,50 +1,68 @@
-# Load environment variables from .env file
-include .env
-# Variables
+##
+## Variables
+##
+
+# For Docker
 DOCKER_DIR := docker/local
-include /.$(PWD)/$(DOCKER_DIR)/.env
-
-DEFAULT_DIR := $(DEFAULT_DIR_)
-SRC_BUILD := $(SRC_BUILD_)
-FLASK_BUILD = $(FLASK_BUILD_)
-POSTGRESQL_BUILD = $(POSTGRESQL_BUILD_)
-
 DOCKER_COMPOSE = docker-compose -f $(DOCKER_DIR)/docker-compose.yaml
-DOCKER_COMPOSE_NO_POSTGRESQL = docker-compose -f $(DOCKER_DIR)/docker-compose-no-postgresql.yaml
+DOCKER_COMPOSE_DB = docker-compose -f $(DOCKER_DIR)/docker-compose-db.yaml
 
 
 ## Global configuration
 .DELETE_ON_ERROR:
 
 help:
-	@echo ''
-	@echo 'Makefile for generating basic skeleton for Python / Flask app with PostgreSQL option'
-	@echo ''
-	@echo 'Usage:'
-	@echo '   make										'	# displays the help
-	
-	@echo '   make build								'	# build the environment
-	@echo '   make up									'	# start the environment
-	@echo '   make stop									'	# stop the environment
-	@echo '   make clean								'	# clean the environment
-	@echo ''
+	@echo '																									'
+	@echo 'Makefile for generating basic skeleton for Python - Flask app									'
+	@echo '																									'
+	@echo 'Usage:																							'
+	@echo '   make					Print the help															'
+	@echo '   make help				Print the help															'
+	@echo '   make load-vars			Import the variables												'
+	@echo '   make build-structure			Creates the directory structure									'
+	@echo '   make build				Build the environment from scratch									'
+	@echo '   make urls				Print the application URL												'
+	@echo '   make start				Start the application												'
+	@echo '   make stop                    	Stop the application											'
+	@echo '   make status                  	Display the status of the container								'
+	@echo '   make destroy				Remove the whole environment										'
+	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make ssh-db				Connect to the Postgres container									'
+	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
+	@echo '																									'
 
-	@echo '   if using flask							'
-	@echo '   make urls									'	# urls of the flask app
-	@echo '   make ssh									'	# connect to the flask container
-	@echo ''
+##
+## Global functions
+##
 
-	@echo '   if using postgresql						'
-	@echo '   make ssh-sql								'	# connect to the postgresql
+# This functions ensures that the env files exists before doing anything
+load-vars:
+ifeq (,$(wildcard $(DOCKER_DIR)/.env))
 	@echo ''
-	
-	@echo '   make help									'	# help
-	@echo ''
+	@echo 'The configuration file "$(DOCKER_DIR)/.env" does not exist. Please, create it.'
+	@exit 1
+else
+# Load Docker variables
+include $(DOCKER_DIR)/.env
+endif
 
+# This functions creates the directory structure
+# NOTE: This functions must be run just once
+build-structure:
 
-.build-structure:
+	@$(MAKE) load-vars
+	@echo ""
+
 	@echo "build-structure... Running..."
 
+# Prepare the project for Flask or just Python
+ifeq ($(FLASK_BUILD),true)
+	@rm -v $(DEFAULT_DIR)/file.py
+else
+	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
+endif
+
+# Prepare the project directory structure
 ifeq ($(SRC_BUILD),false)
 	@if [ -z "$(wildcard $(DEFAULT_DIR)/*)" ]; then \
 		echo "The directory '$(DEFAULT_DIR)' is empty, so there is nothing to copy."; \
@@ -60,107 +78,98 @@ endif
 
 	@mv $(DEFAULT_DIR)/* .
 	@rmdir $(DEFAULT_DIR)/
-else
-
-ifeq ($(FLASK_BUILD),true)
-	@if [ -f $(DEFAULT_DIR)/file.py ]; then rm $(DEFAULT_DIR)/file.py; fi
-else
-	@if [ -f $(DEFAULT_DIR)/__init__.py ]; then rm $(DEFAULT_DIR)/__init__.py; fi
-	@mv $(DEFAULT_DIR)/file.py $(DEFAULT_DIR)/__init__.py
 endif
 
-	@if [ -f ./config.py ]; then rm ./config.py; fi
-	@cp $(DEFAULT_DIR)/config.py .
-# @rm $(DEFAULT_DIR)/config.py
-endif
-
-
 ##
-## Python/Flask without PostgreSQL functions
+## Environment functions
 ##
 
-build: 
-	@$(MAKE) clean
+build:
+	@$(MAKE) destroy
 
 	@echo ""
-	@echo "build... Running..."
+	@echo "Calling build..."
 	@echo ""
-
-	@$(MAKE) .build-structure
-	@echo ""
-
 
 ifeq ($(POSTGRESQL_BUILD),true)
-	@echo "build-with-postgresql..."
-	@$(MAKE) -f build/makefile_postgresql build-with-sql
+	@$(MAKE) -f build/makefile_postgresql build
 else
-	@echo "build-without-postgresql..."
-	@$(MAKE) -f build/makefile_no_postgresql build-without-sql
+	@$(MAKE) -f build/makefile_no_postgresql build
 endif
 
 	@echo ""
 	@echo "----------------------------"
-	@$(MAKE) up
-
-	@echo "----------------------------"
-	@$(MAKE) urls
-	@echo ""
-
-
-up:
-	@echo "Starting the environment..."
-	@echo ""
-
-ifeq ($(POSTGRESQL_BUILD),true)
-	@$(MAKE) -f build/makefile_postgresql up-with-sql
-else
-	@$(MAKE) -f build/makefile_no_postgresql up-without-sql
-endif
-	@echo ""
-
-
-stop:
-	@echo "Stopping the environment..."
-	@echo ""
-
-ifeq ($(POSTGRESQL_BUILD),true)
-	@$(MAKE) -f build/makefile_postgresql stop-with-sql
-else
-	@$(MAKE) -f build/makefile_no_postgresql stop-without-sql
-endif
-	@echo ""
-
-
-clean:
-	@echo ""
-	@echo "Cleaning the environment..."
-
-ifeq ($(POSTGRESQL_BUILD),true)
-	@$(MAKE) -f build/makefile_postgresql clean-with-sql
-else
-	@$(MAKE) -f build/makefile_no_postgresql clean-without-sql
-endif
-	@echo ""
-
+	@$(MAKE) start
 
 urls:
-	@echo ''
-	@echo 'The flask server is running in the URL:'
-	@echo '   http://localhost:$(FLASK_EXTERNAL_PORT)'
-	@echo ''
+	@echo ""
+	@echo "Calling urls..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql urls
+else
+	@$(MAKE) -f build/makefile_no_postgresql urls
+endif
+
+start:
+	@echo "Calling start..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql start
+else
+	@$(MAKE) -f build/makefile_no_postgresql start
+endif
+
+stop:
+	@echo "Calling stop..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql stop
+else
+	@$(MAKE) -f build/makefile_no_postgresql stop
+endif
+
+status:
+	@echo "Calling status..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql status
+else
+	@$(MAKE) -f build/makefile_no_postgresql status
+endif
+
+destroy:
+	@echo "Calling destroy..."
+
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql destroy
+else
+	@$(MAKE) -f build/makefile_no_postgresql destroy
+endif
 
 
 ssh:
-	@echo "ssh... Running..."
-	@echo ""
-	@docker exec -u root -it $(PYTHON_CONTAINER_NAME) bash
+	@echo "Calling ssh..."
 
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql ssh
+else
+	@$(MAKE) -f build/makefile_no_postgresql ssh
+endif
 
-ssh-sql:
-	@echo "ssh-sql... Running..."
-	@echo ""
-	@docker exec -u root -it $(POSTGRESQL_CONTAINER_NAME) bash
+ssh-db:
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql ssh-db
+else
+	@echo "You are not using Postgres..."
+endif
 
+connect-db:
 
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql connect-db
+else
+	@echo "You are not using Postgres..."
+endif
 
-.PHONY: build up stop clean ssh ssh-sql urls
+.PHONY: load-vars build-structure build urls start stop status destroy ssh ssh-db connect-db
