@@ -28,9 +28,10 @@ help:
 	@echo '   make destroy				Remove the whole environment										'
 	@echo '   make ssh				Connect to the Python container											'
 	@echo '   make ssh-db				Connect to the Postgres container									'
-	@echo '   make logs				Display logs for the Python container										'
-	@echo '   make logs-db				Display logs for the Postgres container									'
+	@echo '   make logs				Display logs for the Python container									'
+	@echo '   make logs-db				Display logs for the Postgres container								'
 	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
+	@echo '   make requirements			Install packages from the requirements.txt file						'
 	@echo '																									'
 
 ##
@@ -185,4 +186,11 @@ else
 	@echo "You are not using Postgres..."
 endif
 
-.PHONY: load-vars build-structure build urls start stop status destroy ssh ssh-db logs logs-db connect-db
+requirements:
+ifeq ($(POSTGRESQL_BUILD),true)
+	@$(MAKE) -f build/makefile_postgresql requirements
+else
+	@$(MAKE) -f build/makefile_no_postgresql requirements
+endif
+
+.PHONY: load-vars build-structure build urls start stop status destroy ssh ssh-db logs logs-db connect-db requirements

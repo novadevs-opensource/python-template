@@ -27,8 +27,9 @@ help:
 	@echo '   make stop                    	Stop the application											'
 	@echo '   make status                  	Display the status of the container								'
 	@echo '   make destroy				Remove the whole environment										'
-	@echo '   make ssh				Connect to the Flask container											'
+	@echo '   make ssh				Connect to the Python container											'
 	@echo '   make logs				Display logs for Python container										'
+	@echo '   make requirements			Install packages from the requirements.txt file						'
 	@echo '																									'
 
 
@@ -65,7 +66,7 @@ urls:
 	@$(MAKE) load-vars
 
 	@echo ""
-	@echo "The flask server is running in the URL:"
+	@echo "The application is running in the URL:"
 	@echo "   http://localhost:$(PYTHON_EXTERNAL_PORT)"
 	@echo ""
 
@@ -117,4 +118,9 @@ logs:
 	@echo ""
 	@docker logs $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME)
 
-.PHONY: load-vars build urls start stop status destroy ssh logs
+requirements:
+	@$(MAKE) load-vars
+	@echo ""
+	@docker exec -it $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME) bash -c "pip install -r requirements.txt"
+
+.PHONY: load-vars build urls start stop status destroy ssh logs requirements
