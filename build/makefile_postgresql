@@ -32,6 +32,7 @@ help:
 	@echo '   make logs				Display logs for Python container										'
 	@echo '   make logs-db				Display logs for Postgres container									'
 	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
+	@echo '   make requirements			Install packages from the requirements.txt file						'
 	@echo '																									'
 
 ##
@@ -67,7 +68,7 @@ urls:
 	@$(MAKE) load-vars
 
 	@echo ""
-	@echo "The flask server is running in the URL:"
+	@echo "The application is running in the URL:"
 	@echo "   http://localhost:$(PYTHON_EXTERNAL_PORT)"
 	@echo ""
 	@echo "The PostgreSQL server is running in the URL:"
@@ -139,5 +140,9 @@ connect-db:
 	@echo ""
 	@psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
 
+requirements:
+	@$(MAKE) load-vars
+	@echo ""
+	@docker exec -it $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME) bash -c "pip install -r requirements.txt"
 
-.PHONY: load-vars build urls start stop status destroy ssh ssh-db logs logs-db connect-db
+.PHONY: load-vars build urls start stop status destroy ssh ssh-db logs logs-db connect-db requirements

@@ -1,4 +1,14 @@
 ####
+## Editors
+####
+.vscode/*
+
+####
 ## Docker environment
 ####
 .env
+
+####
+## Python
+####
+__pycache__/
