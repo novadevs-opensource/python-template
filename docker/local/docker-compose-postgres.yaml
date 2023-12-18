@@ -2,17 +2,22 @@
 
 version: '3.8'
 services:
-  flask:
+  python:
     env_file:
       - .env
-    container_name: ${COMPOSE_PROJECT_NAME}_${PYTHON_CONTAINER_NAME}
+    container_name: ${PYTHON_CONTAINER_NAME}
+    hostname: ${PYTHON_HOSTNAME}
     build:
       context: ./../../
       dockerfile: ${PYTHON_DOCKERFILE}
       args:
-        - PYTHON_IMAGE=${PYTHON_BASE_IMAGE}
+        - PYTHON_IMAGE=${PYTHON_IMAGE_BASE}
+        - PYTHON_BUILD=${PYTHON_BUILD}
         - PYTHON_PORT=${PYTHON_INTERNAL_PORT}
-        - SRC_DIR=${DOCKER_SRC_DIR}
+        - SOURCE_DIR=${DOCKER_SRC_DIR}
+      labels:
+        custom.project: ${PROJECT_NAME}
+        custom.data: python
     image: ${PYTHON_IMAGE_NAME}
     networks:
       - localnetwork
@@ -21,19 +26,24 @@ services:
     volumes:
       - ../../${DOCKER_SRC_DIR}:/app/
     labels:
-      custom.project_name: ${COMPOSE_PROJECT_NAME}
-      custom.components: flask
+      custom.project: ${PROJECT_NAME}
+      custom.components: python
     restart: 'no'
 
   postgresql:
     env_file:
       - .env
-    container_name: ${COMPOSE_PROJECT_NAME}_${POSTGRES_CONTAINER_NAME}
+    container_name: ${POSTGRES_CONTAINER_NAME}
+    hostname: ${POSTGRES_HOSTNAME}
     build:
-      context: ./postgresql
+      context: ./../../
+      dockerfile: ${POSTGRES_DOCKERFILE}
       args:
-        - POSTGRES_IMAGE=${POSTGRES_BASE_IMAGE}
+        - POSTGRES_IMAGE=${POSTGRES_IMAGE_BASE}
         - POSTGRES_PORT=${POSTGRES_INTERNAL_PORT}
+      labels:
+        custom.project: ${PROJECT_NAME}
+        custom.data: python
     image: ${POSTGRES_IMAGE_NAME}
     environment:
       - POSTGRES_DB=${POSTGRES_DATABASE}
@@ -46,13 +56,41 @@ services:
     volumes:
       - db-volume:/var/lib/postgresql/data:rw
     labels:
-      custom.project_name: ${COMPOSE_PROJECT_NAME}
+      custom.project: ${PROJECT_NAME}
       custom.components: postgres
+    restart: 'no'
+
+  sonarqube-backend:
+    env_file:
+      - .env
+    container_name: ${SONARQUBE_CONTAINER_NAME}
+    hostname: ${SONARQUBE_HOSTNAME}
+    build:
+      context: ./../../
+      dockerfile: ${SONARQUBE_DOCKERFILE}
+      args:
+        - SONARQUBE_IMAGE=${SONARQUBE_IMAGE_BASE}
+        - SONARQUBE_PORT=${SONARQUBE_INTERNAL_PORT}
+      labels:
+        custom.project: ${PROJECT_NAME}
+        custom.data: sonarqube
+    image: ${SONARQUBE_IMAGE_NAME}
+    networks:
+      - localnetwork
+    ports:
+      - ${SONARQUBE_EXTERNAL_PORT}:${SONARQUBE_INTERNAL_PORT}
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.components: sonarqube
     restart: 'no'
 
 networks:
   localnetwork:
-    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_NETWORK_NAME}
+    name: ${PROJECT_NAME}_${DOCKER_NETWORK_NAME}
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
@@ -63,9 +101,24 @@ networks:
 
 volumes:
   db-volume:
-    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_VOLUME_DB}
+    name: ${POSTGRES_VOLUMEN_NAME}
     labels:
-      custom.project: ${COMPOSE_PROJECT_NAME}
+      custom.project: ${PROJECT_NAME}
       custom.data: database
+  sonarqube_data:
+    name: ${SONARQUBE_VOLUMEN_NAME_DATA}
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.data: sonarqube
+  sonarqube_extensions:
+    name: ${SONARQUBE_VOLUMEN_NAME_EXT}
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.data: sonarqube
+  sonarqube_logs:
+    name: ${SONARQUBE_VOLUMEN_NAME_LOGS}
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.data: sonarqube
 
 ...

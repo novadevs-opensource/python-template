@@ -1,0 +1,12 @@
+## Global configuration
+# fail_fast: true
+# exclude: '^$'
+
+## Specific configuration
+# repos:
+# - repo: git@github.com:novadevs-opensource/policies_precommit.git
+#   rev: 'v0.0.4'
+#   hooks:
+#   - id:
+#     args: [  ]
+#     pass_filenames:
