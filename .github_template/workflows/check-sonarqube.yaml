@@ -1,0 +1,67 @@
+## This workflow is triggered in every branch
+##
+## Client: cliente-name
+## Project: python-template
+## Repository: https://github.com:novadevs-opensource/
+## Version: 0.0.1
+## Aim: Static analysis of the code using SonarQube.
+
+name: SonarQube
+
+on:
+  push:
+
+env:
+  SLACK_CHANNEL:  ${{ secrets.SLACK_CHANNEL }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  SONAR_PROJECT: ${{ secrets.SONAR_PROJECT }}
+  SONAR_SETTINGS: sonar-project.properties-github
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  main:
+    name: Sonarqube
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        # Disabling shallow clones is recommended for improving the relevancy of reporting
+        fetch-depth: 0
+
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      with:
+        args: >
+          -Dproject.settings=${{ env.SONAR_SETTINGS }}
+
+    - name: Get analysis status
+      id: get-analysis-status
+      run: |
+        RESPONSE=$(curl \
+          -s \
+          --connect-timeout 30 \
+          -u "${{ secrets.SONAR_TOKEN }}:" \
+          -H "Accept: application/json" \
+          "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT }}" \
+          | jq -r '.projectStatus["status"]')
+
+        echo "result=$RESPONSE" >> $GITHUB_OUTPUT
+
+    - name: Check the result and send a notification if not a success
+      if: steps.get-analysis-status.outputs.result == 'ERROR'
+      run:
+        exit 1
+
+    # - name: Sending a notification if failure
+    #   if: ${{ failure() }}
+    #   uses: pullreminders/slack-action@master
+    #   with:
+    #     args: '{\"channel\":\"${{ env.SLACK_CHANNEL }}\",\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Server:* Github Actions\n\n *Workflow:* ${{ github.workflow }}\"}},{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Repository:*\n${{ github.repository }}\"},{\"type\":\"mrkdwn\",\"text\":\"*User:*\n${{ github.triggering_actor }}\"},{\"type\":\"mrkdwn\",\"text\":\"*Action:*\nWorkflow triggered\"}]},{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*BuildID:*\n${{ github.run_number }}\"},{\"type\":\"mrkdwn\",\"text\":\"*Status:*\n:x:\"}]},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Commit message:* ${{ github.event.head_commit.message }}\n\n *Commit URL:* ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}\"}}]}'

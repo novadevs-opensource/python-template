@@ -1,0 +1,55 @@
+## This workflow is triggered in every branch.
+##
+## Client: cliente-name
+## Project: python-template
+## Repository: https://github.com/novadevs-opensource/
+## Version: 0.0.1
+
+name: Build
+
+on:
+  push:
+
+env:
+  SLACK_CHANNEL:  ${{ secrets.SLACK_CHANNEL }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  PYTHON_VERSION: 3.11
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: PIP update
+        run: pip install --upgrade pip
+
+      - name: Install dependencies
+        working-directory: src
+        run: pip install -r requirements.txt
+
+      - name: Run the application
+        working-directory: src
+        run: python __init__.py &
+
+      - name: Check if the application is running
+        run: |
+          curl -s http://localhost:5000
+
+      # - name: Sending a notification if failure
+      #   if: ${{ failure() }}
+      #   uses: pullreminders/slack-action@master
+      #   with:
+      #     args: '{\"channel\":\"${{ env.SLACK_CHANNEL }}\",\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Server:* Github Actions\n\n *Workflow:* ${{ github.workflow }}\"}},{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*Repository:*\n${{ github.repository }}\"},{\"type\":\"mrkdwn\",\"text\":\"*User:*\n${{ github.triggering_actor }}\"},{\"type\":\"mrkdwn\",\"text\":\"*Action:*\nWorkflow triggered\"}]},{\"type\":\"section\",\"fields\":[{\"type\":\"mrkdwn\",\"text\":\"*BuildID:*\n${{ github.run_number }}\"},{\"type\":\"mrkdwn\",\"text\":\"*Status:*\n:x:\"}]},{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Commit message:* ${{ github.event.head_commit.message }}\n\n *Commit URL:* ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}\"}}]}'
