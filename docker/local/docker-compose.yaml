@@ -2,18 +2,23 @@
 
 version: '3.8'
 services:
-  flask:
+  python:
     env_file:
       - .env
-    container_name: ${COMPOSE_PROJECT_NAME}_${PYTHON_CONTAINER_NAME}
+    container_name: ${PYTHON_CONTAINER_NAME}
+    hostname: ${PYTHON_HOSTNAME}
     build:
       context: ./../../
       dockerfile: ${PYTHON_DOCKERFILE}
       args:
-        - PYTHON_IMAGE=${PYTHON_BASE_IMAGE}
+        - PYTHON_IMAGE=${PYTHON_IMAGE_BASE}
+        - PYTHON_BUILD=${PYTHON_BUILD}
         - PYTHON_PORT=${PYTHON_INTERNAL_PORT}
-        - SRC_DIR=${DOCKER_SRC_DIR}
-    image: ${PYTHON_BASE_IMAGE}
+        - SOURCE_DIR=${DOCKER_SRC_DIR}
+      labels:
+        custom.project: ${PROJECT_NAME}
+        custom.data: python
+    image: ${PYTHON_IMAGE_NAME}
     networks:
       - localnetwork
     ports:
@@ -21,13 +26,41 @@ services:
     volumes:
       - ../../${DOCKER_SRC_DIR}:/app/
     labels:
-      custom.project_name: ${COMPOSE_PROJECT_NAME}
-      custom.components: flask
+      custom.project: ${PROJECT_NAME}
+      custom.components: python
+    restart: 'no'
+
+  sonarqube-backend:
+    env_file:
+      - .env
+    container_name: ${SONARQUBE_CONTAINER_NAME}
+    hostname: ${SONARQUBE_HOSTNAME}
+    build:
+      context: ./../../
+      dockerfile: ${SONARQUBE_DOCKERFILE}
+      args:
+        - SONARQUBE_IMAGE=${SONARQUBE_IMAGE_BASE}
+        - SONARQUBE_PORT=${SONARQUBE_INTERNAL_PORT}
+      labels:
+        custom.project: ${PROJECT_NAME}
+        custom.data: sonarqube
+    image: ${SONARQUBE_IMAGE_NAME}
+    networks:
+      - localnetwork
+    ports:
+      - ${SONARQUBE_EXTERNAL_PORT}:${SONARQUBE_INTERNAL_PORT}
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.components: sonarqube
     restart: 'no'
 
 networks:
   localnetwork:
-    name: ${COMPOSE_PROJECT_NAME}_${DOCKER_NETWORK_NAME}
+    name: ${PROJECT_NAME}_${DOCKER_NETWORK_NAME}
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
@@ -35,5 +68,22 @@ networks:
       driver: default
       config:
         - subnet: "${DOCKER_NETWORK_CIDR}"
+
+volumes:
+  sonarqube_data:
+    name: ${SONARQUBE_VOLUMEN_NAME_DATA}
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.data: sonarqube
+  sonarqube_extensions:
+    name: ${SONARQUBE_VOLUMEN_NAME_EXT}
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.data: sonarqube
+  sonarqube_logs:
+    name: ${SONARQUBE_VOLUMEN_NAME_LOGS}
+    labels:
+      custom.project: ${PROJECT_NAME}
+      custom.data: sonarqube
 
 ...

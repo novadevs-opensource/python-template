@@ -2,9 +2,14 @@
 ## Variables
 ##
 
-# For Docker
+## Variables
+PROJ_ENV = local
 DOCKER_DIR := docker/local
+include $(DOCKER_DIR)/.env
 DOCKER_COMPOSE = docker-compose -f $(DOCKER_DIR)/docker-compose-postgres.yaml
+APP_IMGS := $(shell docker images -q --filter label=custom.project=$(PROJECT_NAME) --format "{{.ID}}")
+SONARQUBE_CONF := "docker/${PROJ_ENV}/sonarqube/sonarqube-setup.sh"
+
 
 ##
 ## General functions
@@ -20,129 +25,130 @@ help:
 	@echo 'Usage:																							'
 	@echo '   make					Print the help															'
 	@echo '   make help				Print the help															'
-	@echo '   make load-vars			Check if the requirements are fulfilled								'
 	@echo '   make build				Build the environment from scratch									'
-	@echo '   make urls				Print the application URL												'
+	@echo '   make urls				Print the application URLs												'
 	@echo '   make start				Start the application												'
 	@echo '   make stop                    	Stop the application											'
-	@echo '   make status                  	Display the status of the container								'
-	@echo '   make destroy				Remove the whole environment										'
-	@echo '   make ssh				Connect to the Python container											'
+	@echo '   make status                  	Display the status of the containers							'
+	@echo '   make destroy				Delete the environment												'
+	@echo '   make logs				Display the logs for the Node container									'
+	@echo '   make ssh				Connect to the Node container											'
 	@echo '   make ssh-db				Connect to the Postgres container									'
 	@echo '   make logs				Display logs for Python container										'
 	@echo '   make logs-db				Display logs for Postgres container									'
 	@echo '   make connect-db			Connect to the Postgres database locally using psql command			'
 	@echo '   make requirements			Install packages from the requirements.txt file						'
+	@echo '   make sonarqube-analysis		Run Sonarqube analysis      									'
+	@echo '   make sonarqube-check			Check the status of the project                   				'
 	@echo '																									'
 
 ##
 ## Python/Flask with PostgreSQL functions
 ##
 
-# This functions ensures that the env files exists before doing anything
-load-vars:
-ifeq (,$(wildcard $(DOCKER_DIR)/.env))
-	@echo ''
-	@echo 'The configuration file "$(DOCKER_DIR)/.env" does not exist. Please, create it.'
-	@exit 1
-else
-# Load Docker variables
-include $(DOCKER_DIR)/.env
-endif
-
 build:
-	@echo "build... Running..."
+	@$(MAKE) destroy
 
-	@$(MAKE) load-vars
-	@echo ""
-
-ifeq ($(SRC_BUILD),true)
 	@${DOCKER_COMPOSE} build --no-cache
-else
-	@${DOCKER_COMPOSE} build --no-cache
-endif
+	@$(MAKE) start
 
 	@echo ""
+	@sleep 15
+	@$(MAKE) sonarqube-setup
+
+	$(MAKE) urls
+
 
 urls:
-	@$(MAKE) load-vars
-
+	@echo "\nYou might add the following entry in the configuration file /etc/hosts"
+	@echo "   127.0.0.1 $(PROJ_DOMAIN)"
 	@echo ""
-	@echo "The application is running in the URL:"
+	@echo "The available URLs are:"
+	@echo ""
 	@echo "   http://localhost:$(PYTHON_EXTERNAL_PORT)"
+	@echo "   http://$(PROJ_DOMAIN):$(PYTHON_EXTERNAL_PORT)"
+
 	@echo ""
 	@echo "The PostgreSQL server is running in the URL:"
 	@echo "   http://localhost:$(POSTGRES_EXTERNAL_PORT)"
+	@echo "   http://$(PROJ_DOMAIN):$(POSTGRES_EXTERNAL_PORT)"
+	@echo ""
+
+	@echo ""
+	@echo "The Sonarqube server is running in the URL:"
+	@echo "   http://localhost:$(SONARQUBE_EXTERNAL_PORT)"
+	@echo ""
+
 
 start:
-	@$(MAKE) load-vars
-
-	@echo ""
-	@echo "start... Running..."
-
 	@${DOCKER_COMPOSE} up -d
-
 	@$(MAKE) urls
-	@echo ""
+
 
 stop:
-	@$(MAKE) load-vars
-
-	@echo ""
-	@echo "stop... Running..."
-
 	@${DOCKER_COMPOSE} stop
 
+
 status:
-	@$(MAKE) load-vars
-
-	@echo "status... Running..."
-	@echo ""
-
 	@${DOCKER_COMPOSE} ps
 
+
 destroy:
-	@$(MAKE) load-vars
-
-	@echo ""
-	@echo "destroy... Running..."
-	@echo ""
-
 	@${DOCKER_COMPOSE} down -v -t 20
 
-ssh:
-	@$(MAKE) load-vars
-
-	@echo ""
-	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME) bash
-
-ssh-db:
-	@$(MAKE) load-vars
-
-	@echo ""
-	@docker exec -u root -it $(COMPOSE_PROJECT_NAME)_$(POSTGRES_CONTAINER_NAME) bash
+ifneq ($(strip $(APP_IMGS)),)
+	@docker rmi -f $(APP_IMGS) 2>/dev/null
+endif
 
 logs:
-	@$(MAKE) load-vars
+	@docker logs $(PYTHON_CONTAINER_NAME)
 
-	@echo ""
-	@docker logs $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME)
 
 logs-db:
-	@$(MAKE) load-vars
+	@docker logs $(POSTGRES_CONTAINER_NAME)
 
-	@echo ""
-	@docker logs $(COMPOSE_PROJECT_NAME)_$(POSTGRES_CONTAINER_NAME)
+
+ssh:
+	@docker exec -it $(PYTHON_CONTAINER_NAME) sh
+
+
+ssh-db:
+	@docker exec -it $(POSTGRES_CONTAINER_NAME) bash
+
 
 connect-db:
-	@$(MAKE) load-vars
-
-	@echo ""
 	@psql postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_EXTERNAL_PORT}/${POSTGRES_DATABASE}
 
-requirements:
-	@$(MAKE) load-vars
-	@echo ""
-	@docker exec -it $(COMPOSE_PROJECT_NAME)_$(PYTHON_CONTAINER_NAME) bash -c "pip install -r requirements.txt"
 
-.PHONY: load-vars build urls start stop status destroy ssh ssh-db logs logs-db connect-db requirements
+requirements:
+	@docker exec -it $(PYTHON_CONTAINER_NAME) bash -c "pip install -r requirements.txt"
+
+
+sonarqube-setup:
+	@bash $(SONARQUBE_CONF) 2>/dev/null
+
+
+sonarqube-analysis:
+	@docker run \
+		--rm \
+		--network $(PROJECT_NAME)_$(DOCKER_NETWORK_NAME) \
+		-e SONAR_HOST_URL="http://$(SONARQUBE_HOSTNAME):$(SONARQUBE_INTERNAL_PORT)" \
+		-e SONAR_TOKEN="$(SONARQUBE_PROJECT_TOKEN)" \
+		-v "$(shell pwd):/usr/src" \
+		$(SONARQUBE_RUNNER_BASE_IMAGE)
+	@sleep 15
+	@$(MAKE) sonarqube-check
+
+
+sonarqube-check:
+	@echo "-----------------------------"
+	@echo "-----------------------------"
+	@echo -n "The result of the analysis is: "
+	@curl -u $(SONARQUBE_PROJECT_TOKEN): \
+		-s http://localhost:$(SONARQUBE_EXTERNAL_PORT)/api/qualitygates/project_status?projectKey=$(SONARQUBE_PROJECT_KEY) \
+		| jq -r '.projectStatus["status"]'
+	@echo "-----------------------------"
+	@echo "-----------------------------"
+
+
+.PHONY: help build urls start stop status destroy ssh ssh-db logs logs-db connect-db requirements sonarqube-setup sonarqube-analysis sonarqube-check

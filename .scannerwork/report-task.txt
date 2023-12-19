@@ -1,0 +1,6 @@
+projectKey=client-name_python-flask-template
+serverUrl=http://sonarqube:9000
+serverVersion=10.3.0.82913
+dashboardUrl=http://sonarqube:9000/dashboard?id=client-name_python-flask-template
+ceTaskId=AYx-1myEHByIE3FUDfMK
+ceTaskUrl=http://sonarqube:9000/api/ce/task?id=AYx-1myEHByIE3FUDfMK
